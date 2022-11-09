@@ -1,19 +1,21 @@
 import { type NextApiRequest, type NextApiResponse } from "next";
+import { signupSchema } from "../../../server/validator";
 
 import { prisma } from "../../../server/db/client";
+
 
 const signup = async (req: NextApiRequest, res: NextApiResponse) => {
   const { email, password } = req.body;
 
   // Input Validation
-  if (!email || !password) return res.status(401).json({ succeed: false });
+  if (!signupSchema.safeParse({ email, password })) return res.status(401).json({ success: false });
 
   const isExist = await prisma.user.findFirst({
     where: { email }
   });
 
   if (isExist) {
-    return res.status(401).json({ succeed: false });
+    return res.status(401).json({ success: false });
   } 
 
   try {
@@ -21,9 +23,9 @@ const signup = async (req: NextApiRequest, res: NextApiResponse) => {
       data: { email, password }
     })
 
-    res.status(200).json({ succeed: true, data: newUser });
+    res.status(200).json({ success: true, data: newUser });
   } catch (e) {
-    res.status(500).json({ succeed: false });
+    res.status(500).json({ success: false });
   }
 };
 

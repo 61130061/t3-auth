@@ -5,9 +5,9 @@ import DiscordProvider from "next-auth/providers/discord";
 import { PrismaAdapter } from "@next-auth/prisma-adapter";
 import CredentialsProvider from "next-auth/providers/credentials";
 
-
 import { env } from "../../../env/server.mjs";
 import { prisma } from "../../../server/db/client";
+import { loginSchema } from "../../../server/validator";
 
 export const authOptions: NextAuthOptions = {
   // Include user.id on session
@@ -45,11 +45,12 @@ export const authOptions: NextAuthOptions = {
         password: { label: "Password", type: "password" }
       },
       async authorize(credentials, req) {
-        // TODO: Credentials Validation
         const { email, password } = credentials as {
           email: string,
           password: string
         }
+
+        if (!loginSchema.safeParse({ email, password })) return null
 
         const user = await prisma.user.findUnique({
           where: { email }
@@ -57,12 +58,10 @@ export const authOptions: NextAuthOptions = {
 
         if (!user) return null
 
-        // TODO: Password validation
         const isValidPassword = await bcrypt.compareSync(password, user.password);
 
         // If no error and we have user data, return it
         if (isValidPassword) {
-          console.log('hi');
           return user
         }
 

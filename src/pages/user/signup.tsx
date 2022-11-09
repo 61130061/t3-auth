@@ -37,7 +37,7 @@ const SignUp: NextPage = () => {
     });
     const data = await res.json();
 
-    if (data.succeed) {
+    if (data.success) {
       router.push('/user/signin')
     } else {
       console.log('fail');
